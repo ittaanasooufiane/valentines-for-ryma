@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ryma's Heart Quest</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --pink: #ff75a0; 
+            --hot-pink: #ff2a6d;
+            --cyan: #05d9e8;
+            --bg: #050517; 
+        }
+        
+        body {
+            background-color: var(--bg);
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(209, 0, 209, 0.2) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(5, 217, 232, 0.2) 0%, transparent 40%);
+            color: white;
+            font-family: 'Press Start 2P', cursive;
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        /* Sparkles Background */
+        .sparkle {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: moveUp 5s linear infinite;
+        }
+
+        @keyframes moveUp {
+            0% { transform: translateY(110vh) scale(0); opacity: 0; }
+            50% { opacity: 0.8; }
+            100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
+        }
+
+        /* Large Polaroids */
+        .polaroid-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 60px;
+            margin-bottom: 20px;
+            z-index: 5; /* Lowered so No button can fly over */
+        }
+
+        .polaroid {
+            background: white;
+            padding: 15px 15px 40px 15px;
+            box-shadow: 0 0 30px rgba(255, 117, 160, 0.6);
+            width: 220px;
+            color: #333;
+            font-size: 14px;
+            text-align: center;
+            border-radius: 4px;
+            transition: 0.4s;
+            font-family: 'Georgia', serif;
+            font-weight: bold;
+            border: 2px solid var(--pink);
+        }
+        .p1 { transform: rotate(-6deg); }
+        .p2 { transform: rotate(6deg); }
+        .polaroid img { width: 100%; height: 200px; object-fit: cover; border-bottom: 1px solid #ddd; }
+
+        /* Bigger Game World */
+        #game-world {
+            position: relative;
+            width: 1000px;
+            height: 500px;
+            border: 6px solid var(--pink);
+            background: rgba(0, 0, 0, 0.8);
+            overflow: hidden;
+            border-radius: 25px;
+            box-shadow: 0 0 40px var(--pink);
+            z-index: 4;
+        }
+
+        /* Kitten Bot Character */
+        #player { position: absolute; width: 60px; height: 55px; z-index: 100; }
+        .cat-head {
+            width: 100%; height: 100%; background: white;
+            border-radius: 15px; position: relative;
+            box-shadow: 0 0 20px white;
+        }
+        .ear {
+            position: absolute; top: -12px; width: 18px; height: 18px;
+            background: white; transform: rotate(45deg);
+        }
+        .ear.left { left: 8px; }
+        .ear.right { right: 8px; }
+        .eye {
+            position: absolute; top: 18px; width: 8px; height: 8px;
+            background: #333; border-radius: 50%;
+        }
+        .blush {
+            position: absolute; bottom: 15px; width: 10px; height: 5px;
+            background: #ffb6c1; border-radius: 50%;
+        }
+
+        .trail {
+            position: absolute; color: var(--pink); font-size: 14px;
+            pointer-events: none; animation: fadeOut 0.4s forwards;
+            z-index: 90;
+        }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; transform: scale(0.5); } }
+
+        .enemy { 
+            position: absolute; font-size: 50px; z-index: 50; 
+            filter: drop-shadow(0 0 15px var(--cyan));
+            animation: bounce 0.8s infinite alternate;
+        }
+        @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-15px); } }
+
+        .wall { position: absolute; background: var(--pink); opacity: 0.6; border-radius: 8px; }
+        .bullet { position: absolute; width: 18px; height: 18px; background: #fff; border-radius: 50%; box-shadow: 0 0 15px var(--cyan); z-index: 95; }
+
+        .goal { 
+            position: absolute; right: 50px; top: 220px; font-size: 80px; 
+            display: none; animation: heartPulse 1s infinite;
+        }
+        @keyframes heartPulse { 0% { transform: scale(1); } 50% { transform: scale(1.3); filter: drop-shadow(0 0 30px var(--hot-pink)); } 100% { transform: scale(1); } }
+
+        /* UI Box */
+        #ui-box {
+            width: 1000px; background: rgba(0,0,0,0.95); border: 4px solid var(--pink);
+            border-radius: 20px; padding: 25px; margin-top: 25px; text-align: center;
+            z-index: 6;
+        }
+
+        button { 
+            padding: 15px 30px; font-family: 'Press Start 2P', cursive;
+            background: var(--hot-pink); color: white; border: none;
+            cursor: pointer; border-radius: 10px; margin: 15px; font-size: 14px;
+        }
+        
+        /* THE FIX: Highest Z-index for the runaway button */
+        #noBtn {
+            z-index: 9999 !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="polaroid-container">
+        <div class="polaroid p1"><img src="roblox1.jpeg" alt="Photo 1"></div>
+        <h1 style="color: var(--pink); font-size: 20px; text-shadow: 0 0 10px var(--pink);">RYMA'S QUEST</h1>
+        <div class="polaroid p2"><img src="roblox2.jpeg" alt="Photo 2"></div>
+    </div>
+
+    <div id="game-world">
+        <div id="player" style="left: 40px; top: 220px;">
+            <div class="cat-head">
+                <div class="ear left"></div><div class="ear right"></div>
+                <div class="eye" style="left:12px;"></div><div class="eye" style="right:12px;"></div>
+                <div class="blush" style="left:8px;"></div><div class="blush" style="right:8px;"></div>
+            </div>
+        </div>
+        
+        <div class="wall" style="width: 30px; height: 180px; left: 280px; top: 0;"></div>
+        <div class="wall" style="width: 30px; height: 180px; left: 280px; bottom: 0;"></div>
+        <div class="wall" style="width: 30px; height: 180px; left: 650px; top: 160px;"></div>
+
+        <div id="goal-heart" class="goal">💖</div>
+    </div>
+
+    <div id="ui-box">
+        <p id="dialogue" style="font-size: 12px; color: var(--cyan);">[WASD] MOVE | [SPACE] SHOOT | REACH THE HEART!</p>
+        
+        <div id="final-choice" style="display: none;">
+            <p id="qText" style="color: var(--pink); font-size: 16px; margin-bottom: 10px;">RYMA, WILL YOU BE MY VALENTINE?</p>
+            <button onclick="victory()">YES!</button>
+            <button id="noBtn" onclick="handleNo()">NO</button>
+        </div>
+    </div>
+
+    <script>
+        // Sparkles
+        for(let i=0; i<50; i++){
+            let s = document.createElement('div');
+            s.className = 'sparkle';
+            s.style.left = Math.random()*100+'vw';
+            s.style.width = s.style.height = Math.random()*6+'px';
+            s.style.animationDelay = Math.random()*5+'s';
+            document.body.appendChild(s);
+        }
+
+        const world = document.getElementById('game-world');
+        const player = document.getElementById('player');
+        const goal = document.getElementById('goal-heart');
+        const dialogue = document.getElementById('dialogue');
+        const finalChoice = document.getElementById('final-choice');
+        const qText = document.getElementById('qText');
+        const noBtn = document.getElementById('noBtn');
+
+        let pX = 40, pY = 220, keys = {}, enemies = [], bullets = [], kills = 0, isWin = false;
+
+        function init() {
+            const pos = [{x:400, y:50}, {x:450, y:380}, {x:750, y:40}, {x:800, y:400}, {x:850, y:220}];
+            pos.forEach(s => {
+                let e = document.createElement('div'); e.className = 'enemy'; e.innerHTML = '👻';
+                e.style.left = s.x+'px'; e.style.top = s.y+'px';
+                world.appendChild(e);
+                enemies.push({el:e, x:s.x, y:s.y, dir: (Math.random()>0.5?1:-1)});
+            });
+        }
+
+        window.onkeydown = e => { keys[e.key.toLowerCase()] = true; if(e.code==='Space') shoot(); };
+        window.onkeyup = e => keys[e.key.toLowerCase()] = false;
+
+        function shoot() {
+            if(isWin) return;
+            let b = document.createElement('div'); b.className = 'bullet';
+            b.style.left = (pX+60)+'px'; b.style.top = (pY+20)+'px';
+            world.appendChild(b);
+            bullets.push({el:b, x:pX+60, y:pY+20});
+        }
+
+        function createTrail() {
+            let t = document.createElement('div'); t.className = 'trail'; t.innerHTML = '✨';
+            t.style.left = pX+'px'; t.style.top = pY+'px';
+            world.appendChild(t);
+            setTimeout(()=>t.remove(), 400);
+        }
+
+        function gameLoop() {
+            if(isWin) return;
+            let nX = pX, nY = pY;
+            if(keys['w'] || keys['arrowup']) nY -= 6;
+            if(keys['s'] || keys['arrowdown']) nY += 6;
+            if(keys['a'] || keys['arrowleft']) nX -= 6;
+            if(keys['d'] || keys['arrowright']) nX += 6;
+
+            const walls = document.querySelectorAll('.wall');
+            let hitWall = false;
+            walls.forEach(w => {
+                if(nX < w.offsetLeft+w.offsetWidth && nX+60 > w.offsetLeft && nY < w.offsetTop+w.offsetHeight && nY+55 > w.offsetTop) hitWall = true;
+            });
+
+            if(!hitWall) {
+                pX = Math.max(0, Math.min(940, nX));
+                pY = Math.max(0, Math.min(445, nY));
+            }
+
+            if(keys['w'] || keys['a'] || keys['s'] || keys['d']) createTrail();
+            player.style.left = pX+'px'; player.style.top = pY+'px';
+
+            enemies.forEach(e => {
+                e.y += e.dir * 3;
+                if(e.y > 440 || e.y < 0) e.dir *= -1;
+                e.el.style.top = e.y + 'px';
+                if(pX < e.x+40 && pX+40 > e.x && pY < e.y+40 && pY+40 > e.y) { pX=40; pY=220; }
+            });
+
+            bullets.forEach((b, bi) => {
+                b.x += 15; b.el.style.left = b.x+'px';
+                enemies.forEach((e, ei) => {
+                    if(b.x > e.x && b.x < e.x+50 && b.y > e.y && b.y < e.y+50) {
+                        e.el.remove(); enemies.splice(ei, 1);
+                        b.el.remove(); bullets.splice(bi, 1);
+                        kills++;
+                    }
+                });
+                if(b.x > 1000) { b.el.remove(); bullets.splice(bi, 1); }
+            });
+
+            if(kills >= 5) {
+                goal.style.display = 'block';
+                if(pX > 880 && pY > 180 && pY < 300) { 
+                    isWin = true;
+                    dialogue.style.display = 'none';
+                    finalChoice.style.display = 'block';
+                    world.style.boxShadow = "0 0 80px var(--hot-pink)";
+                }
+            }
+            requestAnimationFrame(gameLoop);
+        }
+
+        let nC = 0;
+        const msgs = ["Wait!", "Are you sure?", "Is it the lag?", "Try again!", "No not found.", "Catch it!"];
+        function handleNo() {
+            if(nC < msgs.length) { 
+                qText.innerText = msgs[nC]; 
+                nC++; 
+            } else {
+                qText.innerText = "ERROR: SYSTEM REJECTS 'NO'";
+                moveNo();
+            }
+        }
+
+        function moveNo() {
+            noBtn.style.position = 'fixed';
+            noBtn.onmouseover = () => {
+                const x = Math.random() * (window.innerWidth - 100);
+                const y = Math.random() * (window.innerHeight - 50);
+                noBtn.style.left = x + 'px';
+                noBtn.style.top = y + 'px';
+            };
+            // Initial jump so it doesn't stay stuck under the mouse
+            noBtn.style.left = '10px';
+            noBtn.style.top = '10px';
+        }
+
+        function victory() {
+            document.body.innerHTML = `
+                <div style="text-align:center; animation: pulse 1s infinite;">
+                    <h1 style="font-size:60px; color:var(--pink); text-shadow: 0 0 20px white;">GG RYMA! ❤️</h1>
+                    <p style="font-size:25px; margin-top:20px;">COME ALREADY</p>
+                </div>
+            `;
+        }
+
+        init(); gameLoop();
+    </script>
+</body>
+</html>
